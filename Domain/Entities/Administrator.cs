@@ -4,7 +4,7 @@ namespace Identity.Domain.Entities;
 public class Administrator
 {
     [Key]
-    public int AdministratorId { get; set; }
+    public int Id { get; set; }
 
     [Required]
     [MaxLength(150)]
@@ -17,4 +17,8 @@ public class Administrator
     [Required]
     [MaxLength(255)]
     public string Password { get; set; } = default!;
+
+    [Required]
+    [MaxLength(255)]
+    public string Salt { get; set; } = default!;
 }

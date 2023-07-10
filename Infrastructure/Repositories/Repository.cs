@@ -38,17 +38,20 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     public async Task AddAsync(TEntity entity)
     {
         await _dbSet.AddAsync(entity);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task AddRangeAsync(IEnumerable<TEntity> entities)
     {
         await _dbSet.AddRangeAsync(entities);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(TEntity entity)
     {
         _dbSet.Attach(entity);
         _dbContext.Entry(entity).State = EntityState.Modified;
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task RemoveAsync(TEntity entity)
@@ -58,10 +61,12 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
             _dbSet.Attach(entity);
         }
         _dbSet.Remove(entity);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task RemoveRangeAsync(IEnumerable<TEntity> entities)
     {
         _dbSet.RemoveRange(entities);
+        await _dbContext.SaveChangesAsync();
     }
 }

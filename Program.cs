@@ -7,13 +7,13 @@ using Microsoft.EntityFrameworkCore;
 using Identity.Domain.Entities;
 using Identity.Infrastructure.Repositories;
 using Identity.Infrastructure.Repositories.Interfaces;
+using Identity.Domain.Services;
+using Identity.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-
-builder.Services.AddScoped<IRepository<Administrator>, Repository<Administrator>>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -26,6 +26,9 @@ var configuration = new ConfigurationBuilder()
 
 builder.Services.AddDbContext<AppContext>(options =>
     options.UseMySql(configuration.GetConnectionString("cnn"), new MySqlServerVersion(new Version(8, 0, 21))));
+
+builder.Services.AddScoped<ICrypto, Crypto>();
+// builder.Services.AddScoped<IRepository<Administrator>, Repository<Administrator>>();
 
 var app = builder.Build();
 
