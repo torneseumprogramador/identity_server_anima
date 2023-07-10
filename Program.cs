@@ -28,7 +28,8 @@ builder.Services.AddDbContext<AppContext>(options =>
     options.UseMySql(configuration.GetConnectionString("cnn"), new MySqlServerVersion(new Version(8, 0, 21))));
 
 builder.Services.AddScoped<ICrypto, Crypto>();
-// builder.Services.AddScoped<IRepository<Administrator>, Repository<Administrator>>();
+builder.Services.AddScoped<ITokenJwt, TokenJwt>();
+builder.Services.AddScoped<IRepository<Administrator>, Repository<Administrator>>();
 
 var app = builder.Build();
 

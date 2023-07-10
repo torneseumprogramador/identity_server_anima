@@ -5,21 +5,23 @@ using System.Threading.Tasks;
 using Identity.Domain.DTOs;
 using Identity.Infrastructure.Repositories;
 using Identity.Domain.Services;
+using Identity.Domain.ModelViews;
 
 namespace Identity.Controllers;
 
 [ApiController]
-[Route("api/administrator")]
+[Route("api/administrators")]
 public class AdminLoginController : ControllerBase
 {
     private readonly IRepository<Administrator> _administratorRepository;
+    private readonly ITokenJwt _tokenJwt;
     private readonly ICrypto _crypto;
 
-    public AdminLoginController(AppContext appContext, ICrypto crypto)
-    // public AdminLoginController(IRepository<Administrator> administratorRepository)
+    public AdminLoginController(IRepository<Administrator> administratorRepository, ITokenJwt tokenJwt, ICrypto crypto)
     {
         _crypto = crypto;
-        _administratorRepository = new Repository<Administrator>(appContext);
+        _tokenJwt = tokenJwt;
+        _administratorRepository = administratorRepository;
     }
 
     [HttpGet("/insert")]
@@ -35,21 +37,27 @@ public class AdminLoginController : ControllerBase
 
         await _administratorRepository.AddAsync(adm);
 
-        return Ok("Cadastrado com sucesso");
+        return Ok(new HttpReturn{ Message = "Administrador criado com sucesso" });
     }
 
-    [HttpPost("/")]
+    [HttpPost("/login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var administrator = (await _administratorRepository.FindAsync(a => a.Email == request.Email)).First();
-        if (administrator == null)
-            return BadRequest("Credenciais inválidas.");
+        var administratorList = await _administratorRepository.FindAsync(a => a.Email == request.Email);
+        if (administratorList.Count() == 0)
+            return NotFound(new HttpReturn{ Message = "Administrador não cadastrado" });
 
+        var administrator = administratorList.First();
         var pass = _crypto.Encrypt(request.Password, administrator.Salt);
 
         if(administrator.Password != pass)
-            return BadRequest("Credenciais inválidas.");
+            return BadRequest(new HttpReturn{ Message = "Credenciais inválidas." });
 
-        return Ok("Login bem-sucedido!");
+        var simpleAdministrator = SimpleAdministrator.Build(administrator);
+        return Ok(new LoggedAdministrador
+        { 
+            Administrator = simpleAdministrator,
+            Token = new AdministratorToken(_tokenJwt).BuildToken(simpleAdministrator)
+        });
     }
 }
