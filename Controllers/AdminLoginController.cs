@@ -27,15 +27,20 @@ public class AdminLoginController : ControllerBase
     [HttpGet("/insert")]
     public async Task<IActionResult> Insert()
     {
-        var salt = _crypto.GetSalt();
-        var adm = new Administrator(){
-            Name = "Danilo",
-            Email = "danilo@teste.com",
-            Password = _crypto.Encrypt("asds", salt),
-            Salt = salt
-        };
+        var email = "danilo@teste.com";
+        var adms = await _administratorRepository.FindAsync(a => a.Email == email);
+        if(adms.Count() == 0)
+        {
+            var salt = _crypto.GetSalt();
+            var adm = new Administrator(){
+                Name = "Danilo",
+                Email = email,
+                Password = _crypto.Encrypt("asds", salt),
+                Salt = salt
+            };
 
-        await _administratorRepository.AddAsync(adm);
+            await _administratorRepository.AddAsync(adm);
+        }
 
         return Ok(new HttpReturn{ Message = "Administrador criado com sucesso" });
     }
@@ -59,5 +64,26 @@ public class AdminLoginController : ControllerBase
             Administrator = simpleAdministrator,
             Token = new AdministratorToken(_tokenJwt).BuildToken(simpleAdministrator)
         });
+    }
+
+    [HttpHead("/valid-token")]
+    public IActionResult ValidToker()
+    {
+        string authorizationHeader = Request.Headers["Authorization"];
+        if (!string.IsNullOrWhiteSpace(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+        {
+            string token = authorizationHeader.Substring("Bearer ".Length);
+            var adm = new AdministratorToken(_tokenJwt).TokenToAdm(token);
+            if (adm == null)
+            {
+                return Forbid();
+            }
+        }
+        else
+        {
+            return Unauthorized();
+        }
+        
+        return Ok();
     }
 }

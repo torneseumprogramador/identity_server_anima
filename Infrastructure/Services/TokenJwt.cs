@@ -22,18 +22,9 @@ public class TokenJwt : ITokenJwt
             ValidateAudience = false
         };
 
-        try
-        {
-            var principal = tokenHandler.ValidateToken(encryptedValue, validationParameters, out _);
-            var valueClaim = principal.FindFirst("value");
-            return valueClaim?.Value;
-        }
-        catch (Exception ex)
-        {
-            // Tratar o erro de validação do token JWT
-            // Aqui você pode logar o erro, retornar um valor padrão ou lançar uma exceção personalizada, dependendo do comportamento desejado.
-            throw new Exception("Failed to decrypt JWT token.", ex);
-        }
+        var principal = tokenHandler.ValidateToken(encryptedValue, validationParameters, out _);
+        var valueClaim = principal.FindFirst("value");
+        return valueClaim?.Value;
     }
 
     public string Encrypt(string value, string secretKey, TimeSpan tokenLifetime)
