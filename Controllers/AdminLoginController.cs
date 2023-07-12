@@ -66,24 +66,35 @@ public class AdminLoginController : ControllerBase
         });
     }
 
+    [HttpPost("/refresh-token")]
+    public IActionResult RefreshToken()
+    {
+        var adm = getAdmFromToken();
+        if(adm == null) return Forbid();
+
+        return Ok(new LoggedAdministrador
+        { 
+            Administrator = adm,
+            Token = new AdministratorToken(_tokenJwt).BuildToken(adm)
+        });
+    }
+
     [HttpHead("/valid-token")]
     public IActionResult ValidToker()
+    {
+        return getAdmFromToken() != null ? Ok() : Forbid();
+    }
+
+    private SimpleAdministrator getAdmFromToken()
     {
         string authorizationHeader = Request.Headers["Authorization"];
         if (!string.IsNullOrWhiteSpace(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
         {
             string token = authorizationHeader.Substring("Bearer ".Length);
             var adm = new AdministratorToken(_tokenJwt).TokenToAdm(token);
-            if (adm == null)
-            {
-                return Forbid();
-            }
+            return adm;
         }
-        else
-        {
-            return Unauthorized();
-        }
-        
-        return Ok();
+
+        return null;
     }
 }
